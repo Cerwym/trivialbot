@@ -14,6 +14,7 @@ public class TrivialBot {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        // TODO code application logic here
+        MyTriviaBot trivialBot = new MyTriviaBot("ATrivialBot");
+        
     }
 }
