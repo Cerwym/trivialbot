@@ -1,6 +1,22 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * TrivialBot
+ * 
+ * http://code.google.com/p/trivialbot/
+ * 
+ * Copyright (C) 2011 - TrivialBot
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package trivialbot;
 
@@ -19,10 +35,6 @@ import org.jibble.pircbot.IrcException;
 import org.jibble.pircbot.PircBot;
 import org.jibble.pircbot.User;
 
-/**
- *
- * @author hussein
- */
 public class MyTriviaBot extends PircBot {
 
     private String channel;
@@ -55,6 +67,8 @@ public class MyTriviaBot extends PircBot {
         } else {
             joinChannel(channelName, channelPassword);
         }
+        
+        System.out.println("Connected to: " + getServer());
     }
 
     @Override
@@ -63,6 +77,8 @@ public class MyTriviaBot extends PircBot {
         super.onJoin(channel, sender, login, hostname);
 
         if (sender.equals(getNick())) {
+            System.out.println("Joined channel: " + getChannels()[0]);
+            
             sendMessage(channel, Colors.BOLD + "Hello World !");
             sendMessage(channel, Colors.BOLD + "My name is TrivialBot, i am apparently a trivial bot !");
             sendMessage(channel, Colors.BOLD + "Type !help for a list of available commands");
@@ -177,9 +193,10 @@ public class MyTriviaBot extends PircBot {
                     Thread.sleep(1000);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(MyTriviaBot.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
+                }               
                 disconnect();
+                System.out.println("Disconnected");
+                System.out.println("Quitting .. bye !");
                 System.exit(0);
             }
             if (message.equals("!stat")) {
