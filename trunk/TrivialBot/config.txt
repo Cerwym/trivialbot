@@ -1,0 +1,7 @@
+hostname irc.ubuntu.com
+channelname #testingbot
+botname ATrivialBot
+adminname Hussein12345
+questiontimeout 60
+warningstep 10
+
