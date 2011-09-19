@@ -26,7 +26,7 @@
 	!TrivialBot is built on Java. Java must be installed on the server machine.
   # Extract the zipped downloaded package.
   # Using cmd/console navigate into !TrivialBot’s directory
-  # Type the following command:  `java -jar !TrivialBot.jar`
+  # Type the following command:  `java -jar TrivialBot.jar`
  !TrivialBot should be started, and you’ll see some useful information in the cmd/terminal window.
 
 *If you encounter any issues or problems, kindly report them here: http://code.google.com/p/trivialbot/issues/list
