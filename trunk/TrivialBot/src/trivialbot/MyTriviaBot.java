@@ -94,7 +94,14 @@ public class MyTriviaBot extends PircBot {
 
         if (!gameInProgress) {
             if (!sender.equals(adminName)) {
-                sendMessage(channel, Colors.BOLD + "Sorry " + sender + ", only admin can issue commands");
+                if(message.equals("!start") || 
+                        message.equals("!stop") || 
+                        message.equals("!skip") || 
+                        message.equals("!stat") || 
+                        message.equals("!disconnect") || 
+                        message.equals("!help") ) {
+                    sendMessage(channel, Colors.BOLD + "Sorry " + sender + ", only admin can issue commands");
+                }
                 return;
             }
 
