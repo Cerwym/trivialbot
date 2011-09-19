@@ -1,3 +1,4 @@
+#labels Featured
 = Introduction =
 	!TrivialBot is a simple Java based IRC bot that plays trivia games with users in a specific channel.
 
