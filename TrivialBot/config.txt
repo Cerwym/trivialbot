@@ -4,4 +4,5 @@ botname ATrivialBot
 adminname Hussein12345
 questiontimeout 60
 warningstep 10
+consecutivetimeoutsbeforeexit 10
 
