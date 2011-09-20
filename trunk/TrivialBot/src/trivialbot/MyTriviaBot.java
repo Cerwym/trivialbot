@@ -47,12 +47,14 @@ public class MyTriviaBot extends PircBot {
     private final int warningStep;
     private final int questionTimeout;
     private long questionAskedAt;
+    private int allowedConsecutiveTimeouts;
+    private long currentConsecutiveTimeouts = 0;
     private Timer timer = new Timer();
 
     public MyTriviaBot(String hostname, String channelName, String channelPassword,
             String name, String adminName, ArrayList<Question> questions,
             int questionTimeout,
-            int warningStep) throws IOException, IrcException {
+            int warningStep, int allowedConsecutiveTimeouts) throws IOException, IrcException {
         setAutoNickChange(true);
         setName(name);
         this.adminName = adminName;
@@ -60,6 +62,7 @@ public class MyTriviaBot extends PircBot {
         this.questionTimeout = questionTimeout;
         this.warningStep = warningStep;
         this.channel = channelName;
+        this.allowedConsecutiveTimeouts = allowedConsecutiveTimeouts;
 
         connect(hostname);
         if (channelPassword == null) {
@@ -67,7 +70,6 @@ public class MyTriviaBot extends PircBot {
         } else {
             joinChannel(channelName, channelPassword);
         }
-        
         System.out.println("Connected to: " + getServer());
     }
 
@@ -78,7 +80,7 @@ public class MyTriviaBot extends PircBot {
 
         if (sender.equals(getNick())) {
             System.out.println("Joined channel: " + getChannels()[0]);
-            
+
             sendMessage(channel, Colors.BOLD + "Hello World !");
             sendMessage(channel, Colors.BOLD + "My name is TrivialBot, i am apparently a trivial bot !");
             sendMessage(channel, Colors.BOLD + "Type !help for a list of available commands");
@@ -94,32 +96,34 @@ public class MyTriviaBot extends PircBot {
 
         if (!gameInProgress) {
             if (!sender.equals(adminName)) {
-                if(message.equals("!start") || 
-                        message.equals("!stop") || 
-                        message.equals("!skip") || 
-                        message.equals("!stat") || 
-                        message.equals("!disconnect") || 
-                        message.equals("!help") ) {
+                if (message.equals("!start")
+                        || message.equals("!stop")
+                        || message.equals("!skip")
+                        || message.equals("!stat")
+                        || message.equals("!disconnect")
+                        || message.equals("!help")) {
                     sendMessage(channel, Colors.BOLD + "Sorry " + sender + ", only admin can issue commands");
                 }
                 return;
             }
 
             if (message.equals("!stop")) {
+                currentConsecutiveTimeouts = 0;
                 sendMessage(channel, Colors.BOLD + "huh? Stop what?! start a game first !");
                 return;
             }
 
             if (message.equals("!skip")) {
+                currentConsecutiveTimeouts = 0;
                 sendMessage(channel, Colors.BOLD + "huh? Skip what?! start a game first !");
                 return;
             }
 
             if (message.equals("!start")) {
+                currentConsecutiveTimeouts = 0;
                 sendMessage(channel, Colors.BOLD + "Game started !");
                 sendMessage(channel, Colors.BOLD + "--> Play fair, don't cheat ! <--");
                 gameInProgress = true;
-                scores.clear();
                 User[] users = getUsers(channel);
                 for (int i = 0; i < users.length; i++) {
 
@@ -139,6 +143,7 @@ public class MyTriviaBot extends PircBot {
                     sendMessage(channel, Colors.BOLD + "Sorry " + sender + ", only admin can issue commands");
                     return;
                 }
+                currentConsecutiveTimeouts = 0;
                 sendMessage(channel, Colors.BOLD + "A game is already in progress");
                 gameInProgress = false;
                 return;
@@ -149,6 +154,7 @@ public class MyTriviaBot extends PircBot {
                     sendMessage(channel, Colors.BOLD + "Sorry " + sender + ", only admin can issue commands");
                     return;
                 }
+                currentConsecutiveTimeouts = 0;
                 sendMessage(channel, Colors.BOLD + "Game ended !");
                 gameInProgress = false;
                 timer.cancel();
@@ -159,6 +165,7 @@ public class MyTriviaBot extends PircBot {
                     sendMessage(channel, Colors.BOLD + "Sorry " + sender + ", only admin can issue commands");
                     return;
                 }
+                currentConsecutiveTimeouts = 0;
                 sendMessage(channel, Colors.BOLD + "Skipping this question");
                 sendRandomQuestion();
                 return;
@@ -168,8 +175,10 @@ public class MyTriviaBot extends PircBot {
                 if (message.equalsIgnoreCase(expectedAnswer)) {
                     Integer score = scores.get(sender);
                     if (score != null) {
+                        currentConsecutiveTimeouts = 0;
                         expectedAnswer = null;
-                        sendMessage(channel, Colors.BOLD + sender + ", Correct answer !");
+
+                        sendMessage(channel, Colors.BOLD + sender + ", Correct answer ! Your current score: " + (score.intValue() + 1));
                         scores.put(sender, score.intValue() + 1);
                         sendRandomQuestion();
                     }
@@ -183,6 +192,7 @@ public class MyTriviaBot extends PircBot {
             return;
         } else {
             if (message.equals("!help")) {
+                currentConsecutiveTimeouts = 0;
                 sendMessage(channel, Colors.BOLD + "~~~~ List of my trivial commands ~~~~");
                 sendMessage(channel, Colors.BOLD + "!help: shows this list of commands ... obviously");
                 sendMessage(channel, Colors.BOLD + "!start: starts a trivia game with current users in channel");
@@ -200,13 +210,15 @@ public class MyTriviaBot extends PircBot {
                     Thread.sleep(1000);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(MyTriviaBot.class.getName()).log(Level.SEVERE, null, ex);
-                }               
+                }
                 disconnect();
                 System.out.println("Disconnected");
                 System.out.println("Quitting .. bye !");
                 System.exit(0);
             }
             if (message.equals("!stat")) {
+
+                currentConsecutiveTimeouts = 0;
 
                 sendMessage(channel, Colors.BOLD + "~~~~ Scoreboard ~~~~");
                 Set<Entry<String, Integer>> scoresSet = scores.entrySet();
@@ -215,7 +227,9 @@ public class MyTriviaBot extends PircBot {
                     sendMessage(channel, Colors.BOLD + "No scores ..");
                 } else {
                     for (Entry<String, Integer> score : scoresSet) {
-                        sendMessage(channel, Colors.BOLD + score.getKey() + ": " + score.getValue());
+                        if (score.getValue() != 0) {
+                            sendMessage(channel, Colors.BOLD + score.getKey() + ": " + score.getValue());
+                        }
                     }
                 }
 
@@ -243,7 +257,22 @@ public class MyTriviaBot extends PircBot {
 
             @Override
             public void run() {
-                sendMessage(channel, Colors.BOLD + "Timeout !");
+                sendMessage(channel, Colors.BOLD + "Timeout! The correct answer was: " + expectedAnswer);
+                currentConsecutiveTimeouts++;
+
+                if (currentConsecutiveTimeouts >= allowedConsecutiveTimeouts) {                   
+                    sendMessage(channel, Colors.BOLD
+                            + "Too many timeouts, TrivialBot will disconnect");
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(MyTriviaBot.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    disconnect();
+                    System.out.println("Reached maximum consecutive timeouts, TrivialBot will exit");
+                    System.exit(0);
+
+                }
                 sendRandomQuestion();
             }
         }, questionTimeout * 1000, questionTimeout * 1000);

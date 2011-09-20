@@ -63,6 +63,10 @@ public class TrivialBot {
                 System.err.println("No warningstep parameter specified in the config file");
                 return;
             }
+            if (!config.keySet().contains("consecutivetimeoutsbeforeexit")) {
+                System.err.println("No consecutivetimeoutsbeforeexit parameter specified in the config file");
+                return;
+            }
 
             String hostname = config.get("hostname");
             String channelname = config.get("channelname");
@@ -71,6 +75,7 @@ public class TrivialBot {
             String adminname = config.get("adminname");
             Double questiontimeout = Double.parseDouble(config.get("questiontimeout"));
             Double warningstep = Double.parseDouble(config.get("warningstep"));
+            Integer allowedConsecutiveTimouts = Integer.parseInt(config.get("consecutivetimeoutsbeforeexit"));
 
             
             System.out.println("TrivialBot started !");
@@ -94,7 +99,8 @@ public class TrivialBot {
                     adminname,
                     questions,
                     questiontimeout.intValue(),
-                    warningstep.intValue());          
+                    warningstep.intValue(),
+                    allowedConsecutiveTimouts);          
 
         } catch (Exception ex) {
             Logger.getLogger(TrivialBot.class.getName()).log(Level.SEVERE, null, ex);
